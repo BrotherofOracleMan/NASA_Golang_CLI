@@ -1,8 +1,8 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/spf13/viper"
@@ -17,6 +17,14 @@ import (
 "url": "https://apod.nasa.gov/apod/image/2502/ClusterRing_Euclid_960.jpg"
 */
 type ApiResponse struct {
+	Copyright       string `json:"copyright"`
+	Date            string `json:"date"`
+	Explanation     string `json:"explanation"`
+	Hdurl           string `json:"hdurl"`
+	Media_type      string `json:"media_type"`
+	Service_version string `json:"service_version"`
+	Title           string `json:"title"`
+	Url             string `json:"url"`
 }
 
 func main() {
@@ -38,17 +46,23 @@ func main() {
 	resp, err := http.Get(apod_url + "?api_key=" + api_key)
 
 	if err != nil {
-		fmt.Println("Error fetching data:", err)
-		return
+		fmt.Println("Error Getting data", err)
 	}
 	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-
+	/*
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalf("Error reading response body: %v", err)
+		}
+		fmt.Println("Raw Response Body:", string(bodyBytes)) // Debugging: Print raw JSON
+	*/
+	var apiResp ApiResponse
+	err = json.NewDecoder(resp.Body).Decode(&apiResp)
 	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return
+		fmt.Println("Error decoding JSON:", err)
 	}
-	fmt.Println("Response Data")
-	fmt.Println("Response Body:", string(body))
+	fmt.Println(apiResp)
+
+	fmt.Printf("Explanation : %s\n", apiResp.Explanation)
+	fmt.Printf("Title : %s\n", apiResp.Title)
 }
