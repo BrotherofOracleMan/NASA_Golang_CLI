@@ -1,0 +1,4 @@
+api_key: "LaGkUkwQeTceO4HarfbO8AhG5B8Ym75TTjNxgCaH"
+apod_url: "https://api.nasa.gov/planetary/apod"
+earth_date_url: "https://api.nasa.gov/planetary/earth/assets"
+mars_rover_url: "https://api.nasa.gov/mars-photos/api/v1/rovers"
