@@ -32,3 +32,11 @@ func GetEarthDateURL() string {
 func GetMarsRoverURL() string {
 	return viper.GetString("mars_rover_url")
 }
+
+func GetApodDefaultDownloadDirectory() string {
+	return viper.GetString("default_apod_download_folder")
+}
+
+func GetApodDefaultImageName() string {
+	return viper.GetString("default_apod_download_file_name")
+}

@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"path"
 	"time"
 
 	"github.com/BrotherofOracleMan/NASA_GOLANG_CLI/config"
@@ -38,8 +41,6 @@ var apod_cmd = &cobra.Command{
 
 		var apiResp ApiResponse
 		apiURL, err := build_api_request(datetime)
-		fmt.Println(apiURL)
-
 		if err != nil {
 			fmt.Println("Failed to build Api request. See error %w", err)
 			return
@@ -59,10 +60,29 @@ var apod_cmd = &cobra.Command{
 			return
 		}
 
-		fmt.Printf("Explanation : %s\n", apiResp.Explanation)
-		fmt.Printf("Title : %s\n", apiResp.Title)
-		fmt.Printf("URL : %s\n", apiResp.Url)
-		fmt.Printf("HD URL : %s\n", apiResp.Hdurl)
+		if download {
+			file_name := config.GetApodDefaultImageName()
+			folder_name := config.GetApodDefaultDownloadDirectory()
+			fmt.Println(file_name)
+			fmt.Println(folder_name)
+			if len(args) > 0 {
+				folder_name = args[0]
+			}
+			if len(args) > 1 {
+				file_name = args[1]
+			}
+			err = downloadImage(apiResp.Url, folder_name, file_name)
+			if err != nil {
+				fmt.Printf("Download Image Called. See Error %v\n", err)
+				return
+			}
+		}
+		/*
+			fmt.Printf("Explanation : %s\n", apiResp.Explanation)
+			fmt.Printf("Title : %s\n", apiResp.Title)
+			fmt.Printf("URL : %s\n", apiResp.Url)
+			fmt.Printf("HD URL : %s\n", apiResp.Hdurl)
+		*/
 	},
 }
 
@@ -89,7 +109,40 @@ func build_api_request(date string) (string, error) {
 	queryParams.Set("api_key", config.GetAPIKey())
 	parsedURL.RawQuery = queryParams.Encode()
 	return parsedURL.String(), nil
+}
 
+func downloadImage(url, folder, fileName string) error {
+	// Perform the HTTP request
+	resp, err := http.Get(url)
+	if err != nil {
+		return fmt.Errorf("failed to download image: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check if the HTTP status code is OK
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to get OK HTTP response: %s", resp.Status)
+	}
+
+	// Ensure the directory exists (create if it doesn't)
+	if err := os.MkdirAll(folder, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", folder, err)
+	}
+
+	// Create the file in the specified directory
+	filePath := path.Join(folder, fileName)
+	file, err := os.Create(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to create file %s: %w", filePath, err)
+	}
+	defer file.Close()
+
+	// Copy the image content from the response body to the file
+	if _, err := io.Copy(file, resp.Body); err != nil {
+		return fmt.Errorf("failed to save image to %s: %w", filePath, err)
+	}
+
+	return nil
 }
 
 func init() {

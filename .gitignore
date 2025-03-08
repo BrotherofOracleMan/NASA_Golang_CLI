@@ -1,1 +1,3 @@
 *.yml
+download/
+.DS_Store
