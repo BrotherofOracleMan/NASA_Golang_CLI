@@ -11,6 +11,11 @@ import (
 	"path"
 	"time"
 
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/storage"
+	"fyne.io/fyne/v2/widget"
 	"github.com/BrotherofOracleMan/NASA_GOLANG_CLI/config"
 	cobra "github.com/spf13/cobra"
 )
@@ -32,14 +37,16 @@ type ApiResponse struct {
 
 var datetime string
 var download bool
+var showImage bool
+var image_uri fyne.URI
 
 var apod_cmd = &cobra.Command{
 	Use:   "apod",
 	Short: "Get the Astronomy Picture of the Day from NASA's astronomy picture of the day API",
 	Run: func(cmd *cobra.Command, args []string) {
 		flag.Parse()
-
 		var apiResp ApiResponse
+
 		apiURL, err := build_api_request(datetime)
 		if err != nil {
 			fmt.Println("Failed to build Api request. See error %w", err)
@@ -63,8 +70,6 @@ var apod_cmd = &cobra.Command{
 		if download {
 			file_name := config.GetApodDefaultImageName()
 			folder_name := config.GetApodDefaultDownloadDirectory()
-			fmt.Println(file_name)
-			fmt.Println(folder_name)
 			if len(args) > 0 {
 				folder_name = args[0]
 			}
@@ -77,12 +82,21 @@ var apod_cmd = &cobra.Command{
 				return
 			}
 		}
-		/*
-			fmt.Printf("Explanation : %s\n", apiResp.Explanation)
-			fmt.Printf("Title : %s\n", apiResp.Title)
-			fmt.Printf("URL : %s\n", apiResp.Url)
-			fmt.Printf("HD URL : %s\n", apiResp.Hdurl)
-		*/
+
+		if showImage {
+			a := app.New()
+			w := a.NewWindow("Astronomy Picture of the Day")
+
+			if image_uri, err = storage.ParseURI(apiResp.Url); err != nil {
+				w.SetContent(widget.NewLabel(apiResp.Url))
+				w.ShowAndRun()
+				return
+			}
+			image := canvas.NewImageFromURI(image_uri)
+			image.FillMode = canvas.ImageFillOriginal
+			w.SetContent(image)
+			w.ShowAndRun()
+		}
 	},
 }
 
@@ -148,6 +162,7 @@ func downloadImage(url, folder, fileName string) error {
 func init() {
 	apod_cmd.Flags().StringVarP(&datetime, "date", "d", "", "Date of the picture you want to see")
 	apod_cmd.Flags().BoolVarP(&download, "download", "D", false, "Download the picture of the day")
+	apod_cmd.Flags().BoolVarP(&showImage, "show", "s", true, "Show the image of the day")
 	rootCmd.AddCommand(apod_cmd)
 	config.Loadconfig()
 }

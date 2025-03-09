@@ -1,3 +1,8 @@
+#Ignore all yml files
 *.yml
+# Ignore all images
 download/
+# Mac Data
 .DS_Store
+# Ignore all config.yaml to avoid leaking api key
+config/config.yaml
