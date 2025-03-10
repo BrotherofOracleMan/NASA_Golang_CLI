@@ -85,16 +85,25 @@ var apod_cmd = &cobra.Command{
 
 		if showImage {
 			a := app.New()
-			w := a.NewWindow("Astronomy Picture of the Day")
+			w := a.NewWindow(apiResp.Title)
 
 			if image_uri, err = storage.ParseURI(apiResp.Url); err != nil {
 				w.SetContent(widget.NewLabel(apiResp.Url))
 				w.ShowAndRun()
 				return
 			}
+
 			image := canvas.NewImageFromURI(image_uri)
-			image.FillMode = canvas.ImageFillOriginal
+			image.FillMode = canvas.ImageFillContain
+			image.Resize(fyne.NewSize(300, 300))
+
+			//explanation := canvas.NewText(apiResp.Explanation, color.White)
+			//explanation.TextSize = 8
+
+			//content := container.New(layout.NewStackLayout(), explanation)
+
 			w.SetContent(image)
+			w.Resize(fyne.NewSize(500, 600))
 			w.ShowAndRun()
 		}
 	},
