@@ -14,8 +14,11 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/widget"
+
 	"github.com/BrotherofOracleMan/NASA_GOLANG_CLI/config"
 	cobra "github.com/spf13/cobra"
 )
@@ -94,16 +97,14 @@ var apod_cmd = &cobra.Command{
 			}
 
 			image := canvas.NewImageFromURI(image_uri)
-			image.FillMode = canvas.ImageFillContain
-			image.Resize(fyne.NewSize(300, 300))
+			image.FillMode = canvas.ImageFillOriginal
 
-			//explanation := canvas.NewText(apiResp.Explanation, color.White)
-			//explanation.TextSize = 8
+			explanation := widget.NewLabel(apiResp.Explanation)
+			explanation.Wrapping = fyne.TextWrapWord
+			explanation.Alignment = fyne.TextAlignLeading
 
-			//content := container.New(layout.NewStackLayout(), explanation)
-
-			w.SetContent(image)
-			w.Resize(fyne.NewSize(500, 600))
+			content := container.New(layout.NewVBoxLayout(), image, explanation)
+			w.SetContent(content)
 			w.ShowAndRun()
 		}
 	},
