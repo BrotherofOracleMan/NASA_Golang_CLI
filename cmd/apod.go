@@ -23,10 +23,6 @@ import (
 	cobra "github.com/spf13/cobra"
 )
 
-//only flag that we need to provide is date
-
-const format = "2006-01-02"
-
 type ApiResponse struct {
 	Copyright       string `json:"copyright"`
 	Date            string `json:"date"`
@@ -123,11 +119,10 @@ func build_api_request(date string) (string, error) {
 
 	if date != "" {
 		//YYYY-MM-DD is the required format
-		parsed_date, err := time.Parse(format, datetime)
+		formatted_date, err := parse_date(date)
 		if err != nil {
-			return "", fmt.Errorf("an Error occured when parsing the date in to YYYY-MM-DD: %w", err)
+			return "", fmt.Errorf("an error occured while parsing the date %w", err)
 		}
-		formatted_date := parsed_date.Format(format)
 		queryParams.Set("date", formatted_date)
 	}
 	queryParams.Set("api_key", config.GetAPIKey())
@@ -167,6 +162,35 @@ func downloadImage(url, folder, fileName string) error {
 	}
 
 	return nil
+}
+
+func parse_date(date string) (string, error) {
+	var parsedDate time.Time
+	var err error
+	const desired_format = "2006-01-02"
+
+	known_formats := []string{
+		"2006-01-02",
+		"2006/01/02",
+		"2006.01.02",
+		"01-02-2006",
+		"01/02/2006",
+		"01.02.2006",
+		"March 2, 2006",
+		"2006 March 2",
+	}
+
+	for _, format := range known_formats {
+		parsedDate, err = time.Parse(format, datetime)
+		if err == nil {
+			break
+		}
+	}
+	if err != nil {
+		fmt.Println(datetime)
+		return "", fmt.Errorf("an Error occured when parsing the date in to YYYY-MM-DD: %w", err)
+	}
+	return parsedDate.Format(desired_format), nil
 }
 
 func init() {
