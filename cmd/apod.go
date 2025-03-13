@@ -168,7 +168,7 @@ func parse_date(date string) (string, error) {
 	var parsedDate time.Time
 	var err error
 	const desired_format = "2006-01-02"
-
+	fmt.Println("Parsing date: ", date)
 	known_formats := []string{
 		"2006-01-02",
 		"2006/01/02",
@@ -181,13 +181,13 @@ func parse_date(date string) (string, error) {
 	}
 
 	for _, format := range known_formats {
-		parsedDate, err = time.Parse(format, datetime)
+		parsedDate, err = time.Parse(format, date)
 		if err == nil {
 			break
 		}
 	}
 	if err != nil {
-		fmt.Println(datetime)
+		fmt.Println(date)
 		return "", fmt.Errorf("An error occured when parsing the date in to YYYY-MM-DD: %w", err)
 	}
 	return parsedDate.Format(desired_format), nil

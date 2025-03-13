@@ -27,6 +27,8 @@ type e_sat_api_response struct {
 
 var lon float64
 var lat float64
+var dim float64
+var e_sat_datetime string
 
 var e_st_cmd = &cobra.Command{
 	Use:   "e_sat",
@@ -34,7 +36,8 @@ var e_st_cmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		flag.Parse()
 		var e_sat_response e_sat_api_response
-		apiUrl, err := build_esat_api_request(lon, lat)
+
+		apiUrl, err := build_esat_api_request(lon, lat, e_sat_datetime)
 
 		if err != nil {
 			fmt.Println("An error occured while sending the request", err)
@@ -56,19 +59,27 @@ var e_st_cmd = &cobra.Command{
 	},
 }
 
-func build_esat_api_request(lon float64, lat float64) (string, error) {
+func build_esat_api_request(lon float64, lat float64, date string) (string, error) {
 	baseUrl := config.GetEarthSatelliteUrl()
 	parsedURL, err := url.Parse(baseUrl)
+	queryParams := parsedURL.Query()
 
 	if err != nil {
 		return "", fmt.Errorf("an error occured while parsing the URL %w", err)
 	}
 
-	queryParams := parsedURL.Query()
+	if e_sat_datetime != "" {
+		formatted_date, err := parse_date(date)
+		if err != nil {
+			return "", fmt.Errorf("an error occured while parsing the date. See error: %w", err)
+		}
+		queryParams.Add("date", formatted_date)
+	}
+
+	queryParams.Add("dim", fmt.Sprintf("%f", dim))
 	queryParams.Add("lon", fmt.Sprintf("%f", lon))
 	queryParams.Add("lat", fmt.Sprintf("%f", lat))
 	queryParams.Set("api_key", config.GetAPIKey())
-	queryParams.Set("date", "2018-01-01")
 	parsedURL.RawQuery = queryParams.Encode()
 	return parsedURL.String(), nil
 }
@@ -76,6 +87,8 @@ func build_esat_api_request(lon float64, lat float64) (string, error) {
 func init() {
 	e_st_cmd.Flags().Float64VarP(&lon, "long", "l", 0.0, "Longitude of the location")
 	e_st_cmd.Flags().Float64VarP(&lat, "lat", "t", 0.0, "Latitude of the location")
+	e_st_cmd.Flags().Float64VarP(&dim, "dim", "i", 0.025, "Dimension of the image")
+	e_st_cmd.Flags().StringVarP(&e_sat_datetime, "date", "d", "", "Date of the location you want to look for")
 	rootCmd.AddCommand(e_st_cmd)
 	config.Loadconfig()
 	e_st_cmd.MarkFlagRequired("long")
