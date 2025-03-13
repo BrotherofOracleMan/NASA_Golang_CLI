@@ -40,3 +40,7 @@ func GetApodDefaultDownloadDirectory() string {
 func GetApodDefaultImageName() string {
 	return viper.GetString("default_apod_download_file_name")
 }
+
+func GetEarthSatelliteUrl() string {
+	return viper.GetString("earth_satellite_url")
+}

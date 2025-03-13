@@ -48,13 +48,13 @@ var apod_cmd = &cobra.Command{
 
 		apiURL, err := build_api_request(datetime)
 		if err != nil {
-			fmt.Println("Failed to build Api request. See error %w", err)
+			fmt.Println("Failed to build Api request. See error: %w", err)
 			return
 		}
 		resp, err := http.Get(apiURL)
 
 		if err != nil {
-			fmt.Println("Failed to Get API response. See ErrorL %w", err)
+			fmt.Println("Failed to Get API response. See error: %w", err)
 			return
 		}
 		defer resp.Body.Close()
@@ -62,7 +62,7 @@ var apod_cmd = &cobra.Command{
 		err = json.NewDecoder(resp.Body).Decode(&apiResp)
 
 		if err != nil {
-			fmt.Println("Failed to Decode API response. See Error %w", err)
+			fmt.Println("Failed to Decode API response. See error: %w", err)
 			return
 		}
 
@@ -77,7 +77,7 @@ var apod_cmd = &cobra.Command{
 			}
 			err = downloadImage(apiResp.Url, folder_name, file_name)
 			if err != nil {
-				fmt.Printf("Download Image Called. See Error %v\n", err)
+				fmt.Printf("Download Image Called. See error %v\n", err)
 				return
 			}
 		}
@@ -112,7 +112,7 @@ func build_api_request(date string) (string, error) {
 	parsedURL, err := url.Parse(baseUrl)
 
 	if err != nil {
-		return "", fmt.Errorf("an error occured while parsing the URL %w", err)
+		return "", fmt.Errorf("An error occured while parsing the URL. See error :%w", err)
 	}
 
 	queryParams := parsedURL.Query()
@@ -121,7 +121,7 @@ func build_api_request(date string) (string, error) {
 		//YYYY-MM-DD is the required format
 		formatted_date, err := parse_date(date)
 		if err != nil {
-			return "", fmt.Errorf("an error occured while parsing the date %w", err)
+			return "", fmt.Errorf("An error occured while parsing the date. See error: %w", err)
 		}
 		queryParams.Set("date", formatted_date)
 	}
@@ -134,31 +134,31 @@ func downloadImage(url, folder, fileName string) error {
 	// Perform the HTTP request
 	resp, err := http.Get(url)
 	if err != nil {
-		return fmt.Errorf("failed to download image: %w", err)
+		return fmt.Errorf("Failed to download image: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Check if the HTTP status code is OK
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to get OK HTTP response: %s", resp.Status)
+		return fmt.Errorf("Failed to get OK HTTP response: %s", resp.Status)
 	}
 
 	// Ensure the directory exists (create if it doesn't)
 	if err := os.MkdirAll(folder, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create directory %s: %w", folder, err)
+		return fmt.Errorf("Failed to create directory %s: %w", folder, err)
 	}
 
 	// Create the file in the specified directory
 	filePath := path.Join(folder, fileName)
 	file, err := os.Create(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to create file %s: %w", filePath, err)
+		return fmt.Errorf("Failed to create file %s: %w", filePath, err)
 	}
 	defer file.Close()
 
 	// Copy the image content from the response body to the file
 	if _, err := io.Copy(file, resp.Body); err != nil {
-		return fmt.Errorf("failed to save image to %s: %w", filePath, err)
+		return fmt.Errorf("Failed to save image to %s: %w", filePath, err)
 	}
 
 	return nil
@@ -188,7 +188,7 @@ func parse_date(date string) (string, error) {
 	}
 	if err != nil {
 		fmt.Println(datetime)
-		return "", fmt.Errorf("an Error occured when parsing the date in to YYYY-MM-DD: %w", err)
+		return "", fmt.Errorf("An error occured when parsing the date in to YYYY-MM-DD: %w", err)
 	}
 	return parsedDate.Format(desired_format), nil
 }
